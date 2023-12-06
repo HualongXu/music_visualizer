@@ -1,28 +1,26 @@
-#' @title Display the visualization features relevant to a song
+#' @title Retrieve metadata relevant albums of an artist
 #' 
 #' @description
-#' Given a song's name, this function displays an object (?)
-#' including relevant display features such as singer's information, lyrics, melody, etc.
+#' Given an artist's name, this function retrieves a dataset from spotify that
+#' includes relevant albums' information such as danceability, key, valence, etc.
 #' 
-#' @param song_name A string character vector identifying an existing song
+#' @param artist_name A string character vector identifying an existing singer
 #' 
 #' @return A list of class 'music_visualizer' with the following fields
 #' * artist_name
-#' * songwriter_name
-#' * song_producer_name
-#' * song_background
-#' * release_date
-#' * lyrics
-#' * melody
+#' * album_images
+#' * album_release_date
+#' * danceability 
+#' * valence
+#' * track_name
+#' * album_name
 #' 
-#' Note that many of these fields may be an empty string
+#' Note
 
-music_visualizer <- function(song_name) {
+music_visualizer <- function(artist_name) {
   
-  #where to import/get the information of a song?
-  x <- list("", "", "", "", date, {}, png)
-  names(x) <- c("artist_name", "songwriter_name", "song_producer_name", "song_background", "release_date", 
-                "lyrics", "melody")
+  x <- get_artist_audio_features(artist_name) |>
+    select(artist_name, album_images, album_release_date, danceability, valence, track_name, album_name)
   x <- new_music_visualizer(x)
   x <- validate_music_visualizer(x)
   x
@@ -40,8 +38,8 @@ new_music_visualizer <- function(x) {
 
 validate_music_visualizer <- function(x) {
   
-  required_fields <- c("artist_name", "songwriter_name", "song_producer_name", "song_background", 
-                       "release_date", "lyrics", "melody")
+  required_fields <- c("artist_name", "album_images", "album_release_date", "danceability", 
+                       "valence", "track_name", "album_name")
   
   if (!all(required_fields %in% names(x))) {
     difference <- setdiff(required_fields, names(x))
@@ -49,11 +47,25 @@ validate_music_visualizer <- function(x) {
          past(difference, collapse = ", "))
   }
   
-  char_fields <- c("artist_name", "songwriter_name", "song_producer_name", "song_background")
+  char_fields <- c("artist_name", "album_release_date", "track_name", "album_name")
   
   for (f in char_fields) {
     if (!(is.character(x[[f]]) && length(x[[f]] == 1))) {
       stop("The ", f, "field in a music visualizer object must be a character vector of length 1")
     }
   }
+  
+  double_fields <- c("danceability", "valence")
+  
+  for (f in double_fields) {
+    if (!is.double(x[[f]])) {
+      stop("The", f, "field in a music visualizer object must be a double")
+    }
+  }
+  
+  return(x)
 }
+
+#' Visualize the relevant features
+#' 
+#' 
